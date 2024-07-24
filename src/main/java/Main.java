@@ -19,7 +19,8 @@ public class Main {
         Socket clientSocket = null;
         MemoryMap map = new MemoryMap();
         int port = 6379;
-        ExecutorPool pool = new ExecutorPool(3, logger);
+        ExecutorPool pool = new ExecutorPool(3, logger, map);
+        pool.handleCacheValidation();
         try {
           serverSocket = new ServerSocket(port);
           // Since the tester restarts your program quite often, setting SO_REUSEADDR
@@ -28,7 +29,7 @@ public class Main {
           // Wait for connection from client.
             while(true) {
                 clientSocket = serverSocket.accept();
-                pool.handleTask(clientSocket, map);
+                pool.handleTask(clientSocket);
 
             }
 

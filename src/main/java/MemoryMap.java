@@ -1,8 +1,9 @@
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class MemoryMap {
-    private ConcurrentHashMap<String, String> dict = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<String, ValueWithExpiration> dict = new ConcurrentHashMap<>();
 
     private String setToString(Dtype value) {
         switch (value.type) {
@@ -16,22 +17,47 @@ public class MemoryMap {
                 break;
             }
         }
+
         return null;
     }
 
+    public void EvictKeys() throws InterruptedException {
+        while(true) {
+            this.dict.forEach((key,  valueWithExpiration) -> {
+                if(valueWithExpiration.isExpired()) {
+                    ValueWithExpiration remove = this.dict.remove(key);
+                }
+            });
+            Thread.sleep(100);
+        }
+    }
 
-    public int set(Dtype key, Dtype value) {
+
+
+
+    public int set(Dtype key, Dtype value, Long ttl) {
+        ValueWithExpiration valueWithExpiration;
         var keystr = this.setToString(key);
         var valuestr = this.setToString(value);
         if(keystr != null && valuestr != null) {
-            this.dict.put(keystr, valuestr);
+            Optional<Long> ttlValue;
+            if(ttl != -1 ){
+                ttlValue = Optional.of(ttl);
+                valueWithExpiration = new ValueWithExpiration(valuestr, ttlValue);
+                this.dict.put(keystr, valueWithExpiration);
+                return 1;
+            }
+            ttlValue = Optional.empty();
+            valueWithExpiration = new ValueWithExpiration(valuestr, ttlValue);
+            this.dict.put(keystr, valueWithExpiration);
             return 1;
         }
         return -1;
     }
     public String get(Dtype key) {
         var keystr = this.setToString(key);
-        return this.dict.get(keystr);
+        ValueWithExpiration valueWithExpiration = this.dict.get(keystr);
+        return (valueWithExpiration != null)?valueWithExpiration.getValue():null;
     }
 
 }

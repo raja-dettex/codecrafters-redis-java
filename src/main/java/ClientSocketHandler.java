@@ -42,6 +42,7 @@ class ClientSocketHandler implements Runnable {
 
 
             Dtype dtype = serializer.handleInput(reader);
+            System.out.println(dtype.toString());
             if(dtype.getStrValue() != null) {
                 System.out.println(dtype.getStrValue());
             } else if(dtype.getListValue() != null) {
@@ -59,7 +60,12 @@ class ClientSocketHandler implements Runnable {
                     writer.write("+" + secondCommand + "\r\n");
                     writer.flush();
                 } else if(firstCommand.equals("SET")) {
-                    if(map.set(list.get(1), list.get(2)) == 1) {
+                    Long ttl = Long.valueOf(-1);
+                    if(list.size() >= 5) {
+                        int ttlInt = Integer.parseInt(list.get(4).getStrValue());
+                        ttl = Long.valueOf(ttlInt);
+                    }
+                    if(map.set(list.get(1), list.get(2), ttl) == 1) {
                         writer.write("+OK\r\n");
                         writer.flush();
                     } else {
