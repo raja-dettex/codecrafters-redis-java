@@ -1,10 +1,16 @@
 import java.util.List;
 
-public class Commands {
+public class Dtype {
+
+    public char type;
     private String strValue;
     private int intValue;
-    private List<Commands> listValue; // Use List<Commands> to handle nested structures
 
+    private List<Dtype> listValue; // Use List<Commands> to handle nested structures
+
+    public void setType(char type) {
+        this.type = type;
+    }
     public String getStrValue() {
         return strValue;
     }
@@ -21,11 +27,11 @@ public class Commands {
         this.intValue = intValue;
     }
 
-    public List<Commands> getListValue() {
+    public List<Dtype> getListValue() {
         return listValue;
     }
 
-    public void setListValue(List<Commands> listValue) {
+    public void setListValue(List<Dtype> listValue) {
         this.listValue = listValue;
     }
 

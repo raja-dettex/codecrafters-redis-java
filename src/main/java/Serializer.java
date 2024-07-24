@@ -12,27 +12,36 @@ public class Serializer {
         this.logger = logger;
     }
 
-    public Commands handleInput(BufferedReader reader) throws IOException {
+    public String toBulkString(String s){
+        int length = s.length();
+        StringBuilder builder = new StringBuilder();
+        builder.append("$").append(length).append("\r\n").append(s).append("\r\n");
+        return builder.toString();
+    }
+
+    public Dtype handleInput(BufferedReader reader) throws IOException {
         String line;
         line = reader.readLine().trim();
         return parseLine(line, reader);
     }
 
-    private Commands parseLine(String line, BufferedReader reader) throws IOException {
-        Commands command = new Commands();
+    private Dtype parseLine(String line, BufferedReader reader) throws IOException {
+        Dtype command = new Dtype();
         switch (line.charAt(0)) {
             case '*':
                 // Handle arrays
                 int length = Integer.parseInt(line.substring(1));
                 //System.out.println(length);
-                List<Commands> list = new ArrayList<>();
+                List<Dtype> list = new ArrayList<>();
                 for (int i = 0; i < length; i++) {
                     line = reader.readLine();
                     //System.out.println("line is " + line);
-                    Commands subCommand = parseLine(line, reader);
+                    Dtype subCommand = parseLine(line, reader);
+
                     list.add(subCommand);
                 }
                 command.setListValue(list);
+                command.setType('*');
                 break;
 
             case '$':
@@ -43,22 +52,25 @@ public class Serializer {
                 bulkString.append(str.toCharArray(), 0, bulkLength);
 
                 command.setStrValue(bulkString.toString());
-
+                command.setType('$');
                 break;
 
             case ':':
                 // Handle integers
                 command.setIntValue(Integer.parseInt(line.trim().substring(1)));
+                command.setType(':');
                 break;
 
             case '+':
                 // Handle simple strings
                 command.setStrValue(line.trim().substring(1));
+                command.setType('+');
                 break;
 
             case '-':
                 // Handle errors
                 command.setStrValue("Error: " + line.substring(1));
+                command.setType('-');
                 break;
 
             default:
